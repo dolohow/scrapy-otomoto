@@ -20,5 +20,6 @@ class OtomotoItem(scrapy.Item):
     aso = scrapy.Field()
     condition = scrapy.Field()
     features = scrapy.Field()
-    url = scrapy.Field()
     price = scrapy.Field()
+    price_currency = scrapy.Field()
+    url = scrapy.Field()

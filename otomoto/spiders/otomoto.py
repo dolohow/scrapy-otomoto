@@ -2,7 +2,6 @@ import scrapy
 
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import TakeFirst, MapCompose
-from scrapy.shell import inspect_response
 
 from otomoto.items import OtomotoItem
 
@@ -16,8 +15,6 @@ class OtomotoCarLoader(ItemLoader):
     default_output_processor = TakeFirst()
 
     features_out = MapCompose(filter_out_array)
-
-
 
 
 class OtomotoSpider(scrapy.Spider):
@@ -55,17 +52,26 @@ class OtomotoSpider(scrapy.Spider):
         loader = OtomotoCarLoader(OtomotoItem(), response=response)
 
         for params in response.css('.offer-params__item'):
+
             property_name = params.css('.offer-params__label::text').extract_first().strip()
-            # print(property_name)
             if property_name in property_list_map:
                 css = params.css('.offer-params__value::text').extract_first().strip()
-                print('Done')
                 if css == '':
                     css = params.css('a::text').extract_first().strip()
 
                 loader.add_value(property_list_map[property_name], css)
 
         loader.add_css('features', '.offer-features__item::text')
-        loader.add_css('price', '.offer-price__number::text')
         loader.add_value('url', response.url)
+
+        # add price
+        for price_params in response.css('.price-wrapper'):
+            price_value = price_params.css('.offer-price__number::text').extract_first().replace(" ","")
+            loader.add_value('price',price_value)
+
+        #add price currency
+        loader.add_css('price_currency', '.offer-price__currency::text')
+
         yield loader.load_item()
+
+
