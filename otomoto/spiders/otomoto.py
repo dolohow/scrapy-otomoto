@@ -2,7 +2,6 @@ import scrapy
 
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import TakeFirst, MapCompose
-from scrapy.shell import inspect_response
 
 from otomoto.items import OtomotoItem
 
@@ -16,8 +15,6 @@ class OtomotoCarLoader(ItemLoader):
     default_output_processor = TakeFirst()
 
     features_out = MapCompose(filter_out_array)
-
-
 
 
 class OtomotoSpider(scrapy.Spider):
@@ -53,6 +50,7 @@ class OtomotoSpider(scrapy.Spider):
             'Stan': 'condition',
         }
         loader = OtomotoCarLoader(OtomotoItem(), response=response)
+
         for params in response.css('.offer-params__item'):
 
             property_name = params.css('.offer-params__label::text').extract_first().strip()
