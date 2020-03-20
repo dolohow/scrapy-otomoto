@@ -4,6 +4,8 @@ import scrapy
 class OtomotoItem(scrapy.Item):
     brand = scrapy.Field()
     model = scrapy.Field()
+    price = scrapy.Field()
+    price_currency = scrapy.Field()
     year = scrapy.Field()
     mileage = scrapy.Field()
     version = scrapy.Field()

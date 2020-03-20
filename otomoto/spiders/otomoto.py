@@ -1,7 +1,7 @@
 import scrapy
 
 from scrapy.loader import ItemLoader
-from scrapy.loader.processors import TakeFirst, MapCompose
+from scrapy.loader.processors import TakeFirst, MapCompose, Compose
 
 from otomoto.items import OtomotoItem
 
@@ -11,10 +11,19 @@ def filter_out_array(x):
     return None if x == '' else x
 
 
+def remove_spaces(x):
+    return x.replace(' ', '')
+
+
+def convert_to_integer(x):
+    return int(x)
+
+
 class OtomotoCarLoader(ItemLoader):
     default_output_processor = TakeFirst()
 
     features_out = MapCompose(filter_out_array)
+    price_out = Compose(TakeFirst(), remove_spaces, convert_to_integer)
 
 
 class OtomotoSpider(scrapy.Spider):
@@ -52,15 +61,17 @@ class OtomotoSpider(scrapy.Spider):
         loader = OtomotoCarLoader(OtomotoItem(), response=response)
 
         for params in response.css('.offer-params__item'):
-
             property_name = params.css('.offer-params__label::text').extract_first().strip()
             if property_name in property_list_map:
                 css = params.css('.offer-params__value::text').extract_first().strip()
                 if css == '':
                     css = params.css('a::text').extract_first().strip()
-
                 loader.add_value(property_list_map[property_name], css)
+
+        loader.add_css('price', '.offer-price__number::text')
+        loader.add_css('price_currency', '.offer-price__currency::text')
 
         loader.add_css('features', '.offer-features__item::text')
         loader.add_value('url', response.url)
+
         yield loader.load_item()
