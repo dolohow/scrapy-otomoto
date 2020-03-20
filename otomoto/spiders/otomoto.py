@@ -55,7 +55,7 @@ class OtomotoSpider(scrapy.Spider):
 
             property_name = params.css('.offer-params__label::text').extract_first().strip()
             if property_name in property_list_map:
-                css = params.css('div::text').extract_first().strip()
+                css = params.css('.offer-params__value::text').extract_first().strip()
                 if css == '':
                     css = params.css('a::text').extract_first().strip()
 
