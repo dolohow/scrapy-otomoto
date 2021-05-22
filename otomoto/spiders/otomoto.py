@@ -16,14 +16,24 @@ def remove_spaces(x):
 
 
 def convert_to_integer(x):
-    return int(x)
+    y = x.split(',', 1)[0]
+    return int(y)
 
+def convert_vin(x):
+    if "?vin=" in x:
+        y = (x.split('?vin=', 1)[1]).split('#utm', 1)[0].split('&', 1)[0]
+        if len(y) != 17:
+            y = 'null'
+    else:
+        y = 'null'
+    return y
 
 class OtomotoCarLoader(ItemLoader):
     default_output_processor = TakeFirst()
 
     features_out = MapCompose(filter_out_array)
     price_out = Compose(TakeFirst(), remove_spaces, convert_to_integer)
+    vin_out = Compose(TakeFirst(), convert_vin)
 
 
 class OtomotoSpider(scrapy.Spider):
@@ -57,10 +67,16 @@ class OtomotoSpider(scrapy.Spider):
             'Bezwypadkowy': 'no_accidents',
             'Serwisowany w ASO': 'aso',
             'Stan': 'condition',
+            'Oferta od': 'seller',
+            'Napęd': 'drivetrain',
+            'Możliwość finansowania': 'financing',
+            'Faktura VAT': 'invoice',
+            'Numer rejestracyjny pojazdu': 'plates',
+            'Pierwsza rejestracja': 'registration_date',
         }
         loader = OtomotoCarLoader(OtomotoItem(), response=response)
 
-        for params in response.css('.offer-params__item'):
+        for params in response.css('.offer-params__item'):		
             property_name = params.css('.offer-params__label::text').extract_first().strip()
             if property_name in property_list_map:
                 css = params.css('.offer-params__value::text').extract_first().strip()
@@ -70,7 +86,12 @@ class OtomotoSpider(scrapy.Spider):
 
         loader.add_css('price', '.offer-price__number::text')
         loader.add_css('price_currency', '.offer-price__currency::text')
-
+        adid = response.xpath('//span[@id="ad_id"]/text()').extract_first()
+        loader.add_value('ad_id', adid)
+        date = response.xpath('//div[@class="offer-meta"]/span/span/text()').extract_first()
+        loader.add_value('add_date', date)
+        vinnumber = response.css('[class=carfax-wrapper] div::attr(data-props)').get()
+        loader.add_value('vin', vinnumber)
         loader.add_css('features', '.offer-features__item::text')
         loader.add_value('url', response.url)
 
