@@ -2,44 +2,44 @@ import scrapy
 
 from scrapy.loader import ItemLoader
 from scrapy.loader.processors import TakeFirst, MapCompose, Compose
-
+from urllib.parse import urlparse
 from otomoto.items import OtomotoItem
-
 
 def filter_out_array(x):
     x = x.strip()
     return None if x == '' else x
 
-
 def remove_spaces(x):
     return x.replace(' ', '')
 
-
 def convert_to_integer(x):
-    y = x.split(',', 1)[0]
-    return int(y)
+    price = x.replace(',', '.')
+    return int(price)
 
 def convert_vin(x):
     if "?vin=" in x:
-        y = (x.split('?vin=', 1)[1]).split('#utm', 1)[0].split('&', 1)[0]
-        if len(y) != 17:
-            y = 'null'
+        vin = (urlparse(x).query.split('vin=', 1)[1]).split('&', 1)[0]
+        if len(vin) != 17:
+            vin = 'null'
     else:
-        y = 'null'
-    return y
+        vin = 'null'
+    return vin
 
 class OtomotoCarLoader(ItemLoader):
     default_output_processor = TakeFirst()
-
+    vin_in = MapCompose(convert_vin)
     features_out = MapCompose(filter_out_array)
     price_out = Compose(TakeFirst(), remove_spaces, convert_to_integer)
-    vin_out = Compose(TakeFirst(), convert_vin)
 
 
 class OtomotoSpider(scrapy.Spider):
 
     name = 'otomoto'
-    start_urls = ['https://www.otomoto.pl/osobowe/']
+    
+    def __init__(self, *args, **kwargs): 
+        super(OtomotoSpider, self).__init__(*args, **kwargs) 
+        self.port = None
+        self.start_urls = [kwargs.get('start_url')] 
 
     def parse(self, response):
         for car_page in response.css('.offer-title__link::attr(href)'):
@@ -76,7 +76,7 @@ class OtomotoSpider(scrapy.Spider):
         }
         loader = OtomotoCarLoader(OtomotoItem(), response=response)
 
-        for params in response.css('.offer-params__item'):		
+        for params in response.css('.offer-params__item'):
             property_name = params.css('.offer-params__label::text').extract_first().strip()
             if property_name in property_list_map:
                 css = params.css('.offer-params__value::text').extract_first().strip()
@@ -86,12 +86,9 @@ class OtomotoSpider(scrapy.Spider):
 
         loader.add_css('price', '.offer-price__number::text')
         loader.add_css('price_currency', '.offer-price__currency::text')
-        adid = response.xpath('//span[@id="ad_id"]/text()').extract_first()
-        loader.add_value('ad_id', adid)
-        date = response.xpath('//div[@class="offer-meta"]/span/span/text()').extract_first()
-        loader.add_value('add_date', date)
-        vinnumber = response.css('[class=carfax-wrapper] div::attr(data-props)').get()
-        loader.add_value('vin', vinnumber)
+        loader.add_xpath('ad_id', '//span[@id="ad_id"]/text()')
+        loader.add_xpath('published_at', '//div[@class="offer-meta"]/span/span/text()')
+        loader.add_value('vin', response.css('[class=carfax-wrapper] div::attr(data-props)').get())
         loader.add_css('features', '.offer-features__item::text')
         loader.add_value('url', response.url)
 

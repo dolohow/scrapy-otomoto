@@ -11,16 +11,11 @@ pip install -r requirements.txt
 
 ## Usage
 ```
-scrapy crawl -L WARNING otomoto -o otomoto.json
+scrapy crawl -L WARNING otomoto -o otomoto.json -a start_url="https://www.otomoto.pl/osobowe/"
 ```
 
 This will generate `otomoto.json` file with all cars that are currently
 available.  You can further investigate them or create some analysis.
-
-You can change scope of search by changing url in otomoto.py file
-```
-start_urls = ['https://www.otomoto.pl/osobowe/']
-```
 
 For some interesting applications check out this:
 http://prokulski.net/index.php/2018/01/23/sprzedam-opla/

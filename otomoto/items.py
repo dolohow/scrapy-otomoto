@@ -29,6 +29,6 @@ class OtomotoItem(scrapy.Item):
     financing = scrapy.Field()
     invoice = scrapy.Field()
     ad_id = scrapy.Field()
-    add_date = scrapy.Field()
+    published_at = scrapy.Field()
     plates = scrapy.Field()
     registration_date = scrapy.Field()
