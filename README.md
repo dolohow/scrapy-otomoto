@@ -6,6 +6,8 @@ This program allows you to fetch all cars from otomoto.pl
 
 ## Installation
 ```
+python -m venv venv
+. venv/bin/activate
 pip install -r requirements.txt
 ```
 
