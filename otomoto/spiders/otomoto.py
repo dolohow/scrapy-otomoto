@@ -28,6 +28,7 @@ class OtomotoCarLoader(ItemLoader):
 
 class OtomotoSpider(scrapy.Spider):
 
+    allowed_domains = ('otomoto.pl',)
     name = 'otomoto'
     start_urls = ['https://www.otomoto.pl/osobowe/']
 
