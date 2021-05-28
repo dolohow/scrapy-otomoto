@@ -1,7 +1,7 @@
 import scrapy
 
 from scrapy.loader import ItemLoader
-from scrapy.loader.processors import TakeFirst, MapCompose, Compose
+from itemloaders.processors import TakeFirst, MapCompose, Compose
 
 from otomoto.items import OtomotoItem
 
